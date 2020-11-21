@@ -1,10 +1,13 @@
 const net = require('net')
 const process = require('process')
+const path = require('path')
 const accounts = require('./accounts.json')
+const fs = require('fs')
 let userstatut = false
 let statut = false
 let id = ''
 let defaultpath = process.cwd()
+let defaultfolder = path.basename(process.cwd())
 
 const server = net.createServer((socket) => {
     console.log('new connection')
@@ -26,7 +29,7 @@ const server = net.createServer((socket) => {
                         console.log('Scanning database ...')
                     } else {
                         i = accounts.users.length
-                        socket.write('Wrong username, try again')
+                        socket.write('Username does not exist, try again')
                     }
                 break;
             case 'PASS':
@@ -49,8 +52,34 @@ const server = net.createServer((socket) => {
                 }
                 break;
             case 'CWD':
-                process.chdir(arg)
-                socket.write(' ')
+                if (statut == true) {
+                    process.chdir(arg)
+                    newpath = process.cwd().split(path.sep)
+                    pathid = newpath.indexOf(defaultfolder).toString()
+                    if (pathid == '-1') {
+                        socket.write('You are unable to access')
+                        process.chdir(defaultpath)
+                    } else if (pathid != '-1') {
+                        socket.write(' ')
+                    }
+                } else {
+                    socket.write('You must first authenticate yourself with the command USER')
+                }
+                break;
+            case 'LIST':
+                if (statut == true) {
+                    fs.readdir(process.cwd(), (err, files) => {
+                        if (err) {
+                            console.log('error')
+                        } else if (files.length == 0) {
+                            socket.write('No such file or directory')
+                        } else {
+                            socket.write(files.join('   '))
+                        }
+                    })
+                } else {
+                    socket.write('You must first authenticate yourself with the command USER')
+                }
                 break;
             default:
                 socket.write(`Command ${command} doesn't exist.`)

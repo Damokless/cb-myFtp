@@ -8,7 +8,7 @@ const rl = readline.createInterface({
 
 client.connect(process.argv[3], process.argv[2], () => {
 
-  console.log(`connected to ${process.argv[3]}:${process.argv[2]}`)
+  console.log(`connected to ${process.argv[2]}:${process.argv[3]}`)
 
   client.on('data', (data) => {
     console.log(data.toString())
