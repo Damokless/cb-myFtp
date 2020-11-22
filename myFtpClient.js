@@ -20,6 +20,7 @@ client.connect(process.argv[3], process.argv[2], () => {
 
         case 'QUIT':
           rl.close();
+          client.write(`${answer}`)
           console.log('you will be disconnected')
           client.destroy()
           break;
@@ -27,7 +28,6 @@ client.connect(process.argv[3], process.argv[2], () => {
         case 'STOR':
           let data = fs.readFileSync(arg[1], { encoding: 'utf8', flag: 'r' })
           let myArray = [arg[0], arg[1], data]
-          console.log(myArray)
               client.write(myArray.join(' '))
           break;
 

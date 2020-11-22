@@ -115,7 +115,6 @@ const server = net.createServer((socket) => {
                 break;
             case 'QUIT':
                 console.log(`221 : Service closing control connection for id : ${id}`)
-                socket.end()
                 break;
             default:
                 console('202 : Command not implemented, superfluous at this site.')
