@@ -68,7 +68,7 @@ const server = net.createServer((socket) => {
                 break;
             case 'CWD':
                 if (statut == true) {
-                    process.chdir(arg.toLowerCase)
+                    process.chdir(arg)
                     newpath = process.cwd().split(path.sep)
                     pathid = newpath.indexOf(defaultfolder).toString()
                     if (pathid == '-1') {
