@@ -1,3 +1,4 @@
+const fs = require('fs')
 const net = require('net')
 const client = new net.Socket()
 const readline = require('readline');
@@ -14,12 +15,24 @@ client.connect(process.argv[3], process.argv[2], () => {
     console.log(data.toString())
 
     rl.question('FTP >> ', (answer) => {
-      client.write(`${answer}`)
+      let arg = answer.split(' ')
+      switch (arg[0]) {
 
-      if (answer == 'QUIT') {
-        rl.close();
-        console.log('you will be disconnected')
-        client.destroy()
+        case 'QUIT':
+          rl.close();
+          console.log('you will be disconnected')
+          client.destroy()
+          break;
+
+        case 'STOR':
+          let data = fs.readFileSync(arg[1], { encoding: 'utf8', flag: 'r' })
+          let myArray = [arg[0], arg[1], data]
+          console.log(myArray)
+              client.write(myArray.join(' '))
+          break;
+
+        default:
+          client.write(`${answer}`)
       }
     })
   })

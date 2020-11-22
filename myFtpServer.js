@@ -3,24 +3,29 @@ const process = require('process')
 const path = require('path')
 const accounts = require('./accounts.json')
 const fs = require('fs')
-let userstatut = false
-let statut = false
-let id = ''
-let defaultpath = process.cwd()
-let defaultfolder = path.basename(process.cwd())
 
 const server = net.createServer((socket) => {
     console.log('new connection')
+    let userstatut = false
+    let statut = false
+    let id = '-1'
+    let defaultpath = process.cwd()
+    let defaultfolder = path.basename(process.cwd())
 
     socket.on('data', (data) => {
-        const [command, arg] = data.toString().split(' ')
+        const [command, arg,] = data.toString().split(' ')
+        data = data.toString().slice(command.length + 1)
+        if (arg != undefined){
+        data = data.toString().slice(arg.length + 1)
+        }
+        let datafile = data.toString()
         switch (command) {
             case 'HELP':
                 console.log('214 : Help message.On how to use the server or the meaning of a particular non-standard command. This reply is useful only to the human user.')
                 socket.write('USER <username>: check if the user exist \n PASS <password>: authenticate the user with a password \n LIST: list the current directory of the server \n CWD <directory>: change the current directory of the server \n RETR <filename>: transfer a copy of the file FILE from the server to the client \n STOR <filename>: transfer a copy of the file FILE from the client to the server \n PWD: display the name of the current directory of the server \n HELP: send helpful information to the client \n QUIT: close the connection and stop the program')
                 break;
             case 'USER':
-                for (let i = 0; i < accounts.users.length; i++)
+                for (i = 0; i < accounts.users.length; i++)
                     if (arg == accounts.users[i].username) {
                         userstatut = true
                         id = i
@@ -34,6 +39,9 @@ const server = net.createServer((socket) => {
                         console.log('430 : Invalid username or password')
                         socket.write('Username does not exist, try again')
                     }
+                if (id == '-1') {
+                    socket.write('The user is not in the database')
+                }
                 break;
             case 'PASS':
                 if (userstatut == false) {
@@ -60,7 +68,7 @@ const server = net.createServer((socket) => {
                 break;
             case 'CWD':
                 if (statut == true) {
-                    process.chdir(arg)
+                    process.chdir(arg.toLowerCase)
                     newpath = process.cwd().split(path.sep)
                     pathid = newpath.indexOf(defaultfolder).toString()
                     if (pathid == '-1') {
@@ -91,8 +99,23 @@ const server = net.createServer((socket) => {
                     socket.write('You must first authenticate yourself with the command USER')
                 }
                 break;
+            case 'STOR':
+                if (statut == true) {
+                    fs.writeFile(arg, datafile, (err) => {
+                        if (err) {
+                            console.log('error')
+                        } else {
+                            socket.write('File transferred')
+                        }
+                    })
+                } else {
+                    console.log('332 : Need account for login.')
+                    socket.write('You must first authenticate yourself with the command USER')
+                }
+                break;
             case 'QUIT':
-                console.log('221 : Service closing control connection')
+                console.log(`221 : Service closing control connection for id : ${id}`)
+                socket.end()
                 break;
             default:
                 console('202 : Command not implemented, superfluous at this site.')
