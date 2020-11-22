@@ -16,6 +16,7 @@ const server = net.createServer((socket) => {
         const [command, arg] = data.toString().split(' ')
         switch (command) {
             case 'HELP':
+                console.log('214 : Help message.On how to use the server or the meaning of a particular non-standard command. This reply is useful only to the human user.')
                 socket.write('USER <username>: check if the user exist \n PASS <password>: authenticate the user with a password \n LIST: list the current directory of the server \n CWD <directory>: change the current directory of the server \n RETR <filename>: transfer a copy of the file FILE from the server to the client \n STOR <filename>: transfer a copy of the file FILE from the client to the server \n PWD: display the name of the current directory of the server \n HELP: send helpful information to the client \n QUIT: close the connection and stop the program')
                 break;
             case 'USER':
@@ -24,22 +25,27 @@ const server = net.createServer((socket) => {
                         userstatut = true
                         id = i
                         i = accounts.users.length
+                        console.log('331 : User name okay, need password.')
                         socket.write('Successful user identification, use the PASS command to enter the password')
                     } else if (accounts.users[i].username != arg) {
                         console.log('Scanning database ...')
                     } else {
                         i = accounts.users.length
+                        console.log('430 : Invalid username or password')
                         socket.write('Username does not exist, try again')
                     }
                 break;
             case 'PASS':
                 if (userstatut == false) {
+                    console.log('332 : Need account for login.')
                     socket.write('You must first authenticate yourself with the command USER')
                 } else {
                     if (arg == accounts.users[id].password) {
                         statut = true
+                        console.log('230 User logged in, proceed. Logged out if appropriate.')
                         socket.write('Successful identification, you can now use the following command : LIST, PWD, CWD, RETR, STOR')
                     } else {
+                        console.log('430 : Invalid username or password')
                         socket.write('Wrong password, try again')
                     }
                 }
@@ -48,6 +54,7 @@ const server = net.createServer((socket) => {
                 if (statut == true) {
                     socket.write(process.cwd())
                 } else {
+                    console.log('332 : Need account for login.')
                     socket.write('You must first authenticate yourself with the command USER')
                 }
                 break;
@@ -63,6 +70,7 @@ const server = net.createServer((socket) => {
                         socket.write(' ')
                     }
                 } else {
+                    console.log('332 : Need account for login.')
                     socket.write('You must first authenticate yourself with the command USER')
                 }
                 break;
@@ -74,14 +82,20 @@ const server = net.createServer((socket) => {
                         } else if (files.length == 0) {
                             socket.write('No such file or directory')
                         } else {
+                            console.log('10066 : Directory not empty.')
                             socket.write(files.join('   '))
                         }
                     })
                 } else {
+                    console.log('332 : Need account for login.')
                     socket.write('You must first authenticate yourself with the command USER')
                 }
                 break;
+            case 'QUIT':
+                console.log('221 : Service closing control connection')
+                break;
             default:
+                console('202 : Command not implemented, superfluous at this site.')
                 socket.write(`Command ${command} doesn't exist.`)
         }
     })
